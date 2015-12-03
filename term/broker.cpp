@@ -1,3 +1,6 @@
+//test
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -61,4 +64,21 @@ int main()
 
 	printf("Waiting for clients..\n");
 
-		
+	FD_ZERO(&reset);
+	FD_SET(serv_sock, &reset);
+	maxfds = serv_sock;
+
+	while(1)
+	{
+		struct timeval timeout;
+		fd_set fds;
+		int i;
+
+		timeout.tv_sec = 0;
+		timeout.tv_usec = 5000;
+
+		fds = reset;
+
+		ret = select(maxfds+1, &fds, NULL, NULL, NULL);
+
+		if(FD_ISSET(lis			
