@@ -81,4 +81,4 @@ int main()
 
 		ret = select(maxfds+1, &fds, NULL, NULL, NULL);
 
-		if(FD_ISSET(lis			
+		if(FD_ISSET(serv_sock, &fds)		

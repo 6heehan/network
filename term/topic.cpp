@@ -45,9 +45,13 @@ void maketopic(struct topic* a)
 int main()
 {
 	struct topic a;
+	ssize_t n;
+	char abc[10];
 
 	makemessage(&a, 1);
 	printf("%s",a.message);
+	n = 2;
+	abc[n] = '\0';
 	return 0;
 }	
 	
