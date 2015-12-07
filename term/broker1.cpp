@@ -48,13 +48,12 @@ int main()
     FD_ZERO(&all_wset);
     FD_SET(listenfd, &all_rset);
 
-
     while(1)
     {
         rset = all_rset;
         wset = all_wset;
         nready = select(maxfd+1, &rset, &wset, NULL, NULL);
-
+        //rset -> publish    wset -> subscribe
         if(FD_ISSET(listenfd, &rset))
         {	//new connection 새로운 클라이언트가 접속될 때
             struct client* clnt;
@@ -69,34 +68,35 @@ int main()
             {
                 if(client[i]<0)
                 {
+                    //빈자리에 connfd 추가
                     client[i] = connfd;
                     break;
                 }
-
             }
 
             if(i==MAXCLIENT)
             {
+                //총 client의 수가 넘어가면 broker 종료
                 printf("too many clients\n");
                 exit(1);
             }
 
             n = read(connfd, line, BUFFER_SIZE);
             line[n] = '\0';
-
             //클라이언트의 종류를 구분
 
 
             if(strcmp(line, "./publish") == 0)
             {
+                //접속한 client가 publish 일때
                 if(clnt_pub_idx > 2)
                 {
+                    //3개의 publish만 등록하도록 함
                     printf("publish MAX : 3\n");
                     client[i] = -1;
                     close(connfd);
                     continue;
                 }
-
 
                 sprintf(writebuffer, "%d", clnt_pub_idx);
                 write(connfd, writebuffer, BUFFER_SIZE);
@@ -108,8 +108,10 @@ int main()
                 }
 
                 n = read(connfd, line, BUFFER_SIZE);
+                //publish가 보낸 토픽을 저장
                 if(n==0)
                 {
+                    //중복된 토픽일 경우 종료
                     client[i] = -1;
                     continue;
                 }
@@ -122,7 +124,6 @@ int main()
                 strcpy(clnt->clientname, "publish");
                 clnt->flag = false;
                 clnt_pub[clnt_pub_idx++] = clnt;
-
                 //현재 등록하는 publish의 정보를 저장
 
                 strcpy(top->name, line);
@@ -132,13 +133,15 @@ int main()
                 //topic 등록
 
                 FD_SET(connfd, &all_rset);
-
+                //publish 등록 완료
             }
 
             else if(strcmp(line, "./subscribe") == 0)
             {
+                //접속한 client가 subscribe 일때
                 if(clnt_sub_idx > 2)
                 {
+                    //3개의 subscribe만 등록하도록 함
                     printf("subscribe MAX : 3\n");
                     client[i] = -1;
                     close(connfd);
@@ -146,6 +149,7 @@ int main()
                 }
                 n = read(connfd, line, BUFFER_SIZE);
                 line[n] = '\0';
+                //토픽을 받아옴
 
                 clnt->sock_fd = connfd;
                 clnt->sock_addr = cliaddr;
@@ -153,13 +157,10 @@ int main()
                 strcpy(clnt->clientname, "subscribe");
                 clnt->flag = false;
                 clnt_sub[clnt_sub_idx++] = clnt;
+                //subscribe 등록
                 FD_SET(connfd, &all_wset);
-
+                //subscribe 등록 완료
             }
-
-
-
-
 
             if(connfd > maxfd)
                 maxfd = connfd;
@@ -168,11 +169,7 @@ int main()
                 maxi = i;
 
             if(--nready <= 0)
-            {
                 continue;
-            }
-
-
         }
 
 
